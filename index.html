@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Mother's Day</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Load FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Load Canvas Confetti for the finale -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            300: '#fda4af',
+                            500: '#f43f5e',
+                            700: '#be123c',
+                            900: '#881337',
+                        }
+                    },
+                    fontFamily: {
+                        'title': ['"Dancing Script"', 'cursive'],
+                        'body': ['"Lora"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base styles */
+        body {
+            background: linear-gradient(135deg, #fff1f2 0%, #fce7f3 100%);
+            color: #831843;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Page transitions */
+        .page {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            transform: translateY(20px);
+            min-height: 100vh;
+        }
+
+        .page.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Glassmorphism cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Custom Button */
+        .btn-primary {
+            background: linear-gradient(to right, #f43f5e, #fb7185);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(244, 63, 94, 0.3);
+        }
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+        .btn-disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Game specific styles */
+        /* Memory Match */
+        .memory-card {
+            perspective: 1000px;
+            cursor: pointer;
+            aspect-ratio: 3/4;
+        }
+        .memory-card-inner {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        .memory-card.flipped .memory-card-inner {
+            transform: rotateY(180deg);
+        }
+        .memory-card-front, .memory-card-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .memory-card-front {
+            background-color: white;
+            transform: rotateY(180deg);
+            font-size: 2.5rem;
+        }
+        .memory-card-back {
+            background: linear-gradient(135deg, #fda4af, #f43f5e);
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        /* Catch Game Canvas */
+        #catch-canvas {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 1rem;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+            touch-action: none;
+        }
+
+        /* Letter styling */
+        .letter-paper {
+            background-image: url('data:image/svg+xml,%3Csvg width="100" height="20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M0 19 L100 19" stroke="%23fbcfe8" stroke-width="1" fill="none" /%3E%3C/svg%3E');
+            background-repeat: repeat;
+            line-height: 20px;
+            padding: 30px;
+        }
+
+        /* Floating background hearts */
+        .bg-heart {
+            position: fixed;
+            color: rgba(244, 63, 94, 0.1);
+            animation: float 15s infinite linear;
+            z-index: -1;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="font-body antialiased min-h-screen relative">
+
+    <!-- Background Elements -->
+    <div id="bg-elements"></div>
+
+    <main class="w-full max-w-2xl mx-auto px-4 py-8 relative z-10">
+
+        <!-- Page 1: Landing -->
+        <section id="page-1" class="page active flex-col items-center justify-center text-center">
+            <div class="glass-card p-10 rounded-3xl w-full max-w-md mx-auto">
+                <i class="fas fa-seedling text-5xl text-rose-400 mb-6 block animate-bounce"></i>
+                <h1 class="font-title text-5xl md:text-6xl font-bold text-rose-600 mb-4 leading-tight">A Journey For Mom</h1>
+                <p class="text-lg md:text-xl text-gray-700 mb-8 italic">A little something to celebrate you.</p>
+                <button onclick="nextPage()" class="btn-primary text-white font-semibold py-3 px-8 rounded-full text-lg w-full shadow-lg">
+                    Begin the Journey <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Page 2: Milestone -->
+        <section id="page-2" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-8 md:p-12 rounded-3xl w-full">
+                <div class="text-rose-500 mb-6">
+                    <i class="fas fa-calendar-alt text-4xl"></i>
+                </div>
+                <h2 class="font-title text-5xl text-rose-600 mb-6">19 Beautiful Years</h2>
+                <p class="text-lg text-gray-700 mb-6 leading-relaxed">
+                    It's been 19 years since you embarked on the most challenging, exhausting, yet completely beautiful journey of your life... Motherhood.
+                </p>
+                <p class="text-lg text-gray-700 mb-8 leading-relaxed">
+                    Over these 6,935+ days, you've given endless love. So today, we play some games to celebrate YOU!
+                </p>
+                <button onclick="nextPage()" class="btn-primary text-white font-semibold py-3 px-8 rounded-full text-lg shadow-lg">
+                    Let's Play <i class="fas fa-gamepad ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Page 3: Game 1 - Scramble -->
+        <section id="page-3" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-8 rounded-3xl w-full">
+                <h2 class="font-title text-4xl text-rose-600 mb-2">Game 1: Unscramble</h2>
+                <p class="text-gray-600 mb-6">Unscramble the word that describes you best!</p>
+                
+                <div class="bg-white/50 p-6 rounded-2xl mb-6 shadow-inner">
+                    <div id="scramble-word" class="font-title text-5xl md:text-6xl tracking-[0.2em] text-rose-700 mb-6 font-bold">
+                        <!-- Word goes here -->
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <input type="text" id="scramble-input" class="px-4 py-3 rounded-xl border-2 border-rose-200 focus:border-rose-500 focus:ring-0 outline-none text-center text-xl text-rose-900 uppercase" placeholder="Your guess...">
+                        <button onclick="checkScramble()" class="btn-primary text-white font-semibold py-3 px-6 rounded-xl shadow-md">
+                            Check
+                        </button>
+                    </div>
+                    <p id="scramble-msg" class="mt-4 text-lg font-semibold h-6"></p>
+                </div>
+                
+                <button id="btn-next-3" onclick="nextPage()" class="btn-primary btn-disabled text-white font-semibold py-3 px-8 rounded-full text-lg w-full">
+                    Next Chapter <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Page 4: Intermission 1 -->
+        <section id="page-4" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-10 rounded-3xl w-full">
+                <i class="fas fa-heart text-4xl text-rose-400 mb-6 block"></i>
+                <h2 class="font-title text-4xl text-rose-600 mb-6">You got it!</h2>
+                <p class="text-xl text-gray-700 mb-8 italic Lora">
+                    "A mother's love is more beautiful than any fresh flower."
+                </p>
+                <p class="text-lg text-gray-700 mb-8">
+                    Ready for a test of memory? (Don't worry, it's easier than remembering where I left my keys).
+                </p>
+                <button onclick="setupMemoryGame(); nextPage();" class="btn-primary text-white font-semibold py-3 px-8 rounded-full text-lg shadow-lg">
+                    Next Game <i class="fas fa-play ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Page 5: Game 2 - Memory Match -->
+        <section id="page-5" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-6 md:p-8 rounded-3xl w-full">
+                <h2 class="font-title text-4xl text-rose-600 mb-2">Game 2: Memory Match</h2>
+                <p class="text-gray-600 mb-6">Find all the pairs of things a mom loves!</p>
+                
+                <div id="memory-board" class="grid grid-cols-4 gap-2 md:gap-4 mb-6">
+                    <!-- Cards injected via JS -->
+                </div>
+                
+                <p id="memory-msg" class="text-rose-600 font-bold text-lg h-6 mb-4"></p>
+
+                <button id="btn-next-5" onclick="nextPage()" class="btn-primary btn-disabled text-white font-semibold py-3 px-8 rounded-full text-lg w-full">
+                    Continue <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Page 6: Intermission 2 -->
+        <section id="page-6" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-10 rounded-3xl w-full">
+                <i class="fas fa-star text-4xl text-yellow-400 mb-6 block"></i>
+                <h2 class="font-title text-4xl text-rose-600 mb-6">Perfect Match!</h2>
+                <p class="text-lg text-gray-700 mb-6 leading-relaxed">
+                    You've always had a great memory... mostly for bringing up that one embarrassing thing I did when I was 5. 😉
+                </p>
+                <p class="text-lg text-gray-700 mb-8 leading-relaxed">
+                    But seriously, thank you for remembering every little detail about me. Now, let's see your reflexes!
+                </p>
+                <button onclick="startCatchGame(); nextPage();" class="btn-primary text-white font-semibold py-3 px-8 rounded-full text-lg shadow-lg">
+                    Play Catch <i class="fas fa-hand-sparkles ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Page 7: Game 3 - Catch the Love -->
+        <section id="page-7" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-4 md:p-8 rounded-3xl w-full max-w-lg mx-auto">
+                <h2 class="font-title text-3xl md:text-4xl text-rose-600 mb-2">Game 3: Catch the Love</h2>
+                <p class="text-gray-600 mb-4 text-sm md:text-base">Drag the basket to catch 10 hearts! Avoid the broken ones.</p>
+                
+                <div class="relative w-full aspect-square md:aspect-[4/3] mb-4">
+                    <canvas id="catch-canvas" class="w-full h-full"></canvas>
+                    <div id="catch-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 rounded-2xl z-10 hidden">
+                        <h3 class="font-title text-4xl text-rose-600 mb-4">You caught them all!</h3>
+                        <button onclick="nextPage()" class="btn-primary text-white font-semibold py-2 px-6 rounded-full">
+                            Move On <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between px-4 font-bold text-rose-700">
+                    <span>Score: <span id="catch-score">0</span>/10</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 8: Intermission 3 -->
+        <section id="page-8" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-10 rounded-3xl w-full">
+                <i class="fas fa-hands-holding-child text-5xl text-rose-400 mb-6 block"></i>
+                <h2 class="font-title text-4xl text-rose-600 mb-6">Always Catching Me</h2>
+                <p class="text-lg text-gray-700 mb-6 leading-relaxed">
+                    Just like in that game, you've spent the last 19 years catching me every time I fall. 
+                </p>
+                <p class="text-lg text-gray-700 mb-8 leading-relaxed">
+                    Before we get to the finale, I have one very important quiz for you.
+                </p>
+                <button onclick="nextPage()" class="btn-primary text-white font-semibold py-3 px-8 rounded-full text-lg shadow-lg">
+                    Take the Quiz <i class="fas fa-question-circle ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Page 9: Game 4 - Quiz -->
+        <section id="page-9" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-6 md:p-10 rounded-3xl w-full">
+                <h2 class="font-title text-4xl text-rose-600 mb-6">The Mom Quiz</h2>
+                
+                <div id="quiz-container" class="bg-white/60 p-6 rounded-2xl shadow-sm text-left">
+                    <h3 id="quiz-question" class="text-xl font-semibold text-gray-800 mb-6">Question goes here?</h3>
+                    <div id="quiz-options" class="flex flex-col gap-3">
+                        <!-- Options injected via JS -->
+                    </div>
+                </div>
+
+                <div id="quiz-result" class="hidden mt-6">
+                    <p class="font-title text-3xl text-rose-600 mb-4">100% Correct!</p>
+                    <button onclick="nextPage()" class="btn-primary text-white font-semibold py-3 px-8 rounded-full text-lg w-full">
+                        Proceed to Finale <i class="fas fa-star ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 10: Build Up -->
+        <section id="page-10" class="page flex-col items-center justify-center text-center">
+            <div class="glass-card p-10 rounded-3xl w-full">
+                <div class="animate-pulse mb-6 text-rose-400">
+                    <i class="fas fa-envelope-open-text text-6xl"></i>
+                </div>
+                <h2 class="font-title text-4xl text-rose-600 mb-6">You've won!</h2>
+                <p class="text-lg text-gray-700 mb-6 leading-relaxed">
+                    You beat all the games. But honestly, the real prize is mine, because I get to have you as my mom.
+                </p>
+                <p class="text-lg text-gray-700 mb-8 font-semibold">
+                    I wrote you a little something...
+                </p>
+                <button onclick="showLetter(); nextPage();" class="bg-rose-800 hover:bg-rose-900 text-white font-semibold py-4 px-10 rounded-full text-xl shadow-xl transition-all hover:scale-105">
+                    Open the Letter <i class="fas fa-envelope ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Page 11: The Letter -->
+        <section id="page-11" class="page flex-col items-center justify-center">
+            <div class="w-full bg-white rounded-lg shadow-2xl overflow-hidden max-w-2xl transform transition-all duration-1000 rotate-1 hover:rotate-0 border-8 border-white">
+                <div class="bg-rose-100 p-4 border-b border-rose-200 text-center">
+                    <h2 class="font-title text-4xl text-rose-800">For You, Mom</h2>
+                </div>
+                <div class="p-6 md:p-10 letter-paper text-gray-800 font-body text-lg leading-loose relative">
+                    <!-- Faded watermark -->
+                    <i class="fas fa-tree absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl text-rose-50 opacity-30 z-0 pointer-events-none"></i>
+                    
+                    <div class="relative z-10">
+                        <p class="mb-4 font-semibold text-xl">Dearest Mom,</p>
+                        
+                        <p class="mb-4 text-justify">
+                            Nineteen years ago, your world shifted completely. You took on the hardest, most beautiful job in the world. Looking back at these 19 years, I am simply in awe of you.
+                        </p>
+                        
+                        <p class="mb-4 text-justify">
+                            Thank you for every scraped knee you bandaged, every tear you wiped away, and every moment you put my needs before your own. Thank you for the endless patience when I was difficult, the warm hugs when I was broken, and the unwavering support that has shaped who I am today.
+                        </p>
+
+                        <p class="mb-4 text-justify">
+                            You are my rock, my strongest confidante, and my biggest cheerleader. The games we played today were just silly fun, but the truth is, I hit the jackpot having you as my mother. 
+                        </p>
+
+                        <p class="mb-8 text-justify">
+                            Happy Mother's Day. I love you more than words, websites, or games could ever express. Here's to 19 years down, and a lifetime of beautiful memories to go.
+                        </p>
+
+                        <p class="text-right font-title text-3xl text-rose-700">
+                            With all my love,<br>
+                            Your Biggest Fan
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="fireFinale(); nextPage();" class="mt-8 btn-primary text-white font-semibold py-3 px-8 rounded-full text-lg shadow-lg">
+                Finish <i class="fas fa-heart ml-2"></i>
+            </button>
+        </section>
+
+        <!-- Page 12: Finale -->
+        <section id="page-12" class="page flex-col items-center justify-center text-center relative">
+            <h1 class="font-title text-6xl md:text-8xl text-rose-600 mb-6 drop-shadow-md animate-pulse">Happy Mother's Day!</h1>
+            <p class="text-2xl text-rose-800 font-semibold bg-white/50 px-6 py-2 rounded-full backdrop-blur-sm">
+                I love you! 💖
+            </p>
+            <div class="mt-12">
+                <button onclick="goToPage(1)" class="text-rose-600 hover:text-rose-800 underline transition-colors">
+                    <i class="fas fa-redo text-sm"></i> Experience it again
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- Navigation Logic ---
+        let currentPage = 1;
+        const totalPages = 12;
+
+        function showPage(pageNumber) {
+            // Hide all
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+                setTimeout(() => { if(!page.classList.contains('active')) page.style.display = 'none'; }, 800);
+            });
+
+            // Show target
+            const targetPage = document.getElementById(`page-${pageNumber}`);
+            if(targetPage) {
+                targetPage.style.display = 'flex';
+                // Small delay to allow display:flex to apply before opacity transition
+                setTimeout(() => {
+                    targetPage.classList.add('active');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 50);
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        }
+
+        function goToPage(pageNumber) {
+            currentPage = pageNumber;
+            showPage(currentPage);
+        }
+
+        // --- Background Floating Hearts ---
+        function createBackgroundHearts() {
+            const bgContainer = document.getElementById('bg-elements');
+            const icons = ['fa-heart', 'fa-star', 'fa-seedling'];
+            
+            for(let i=0; i<15; i++) {
+                let el = document.createElement('i');
+                const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+                el.className = `fas ${randomIcon} bg-heart`;
+                el.style.left = `${Math.random() * 100}vw`;
+                el.style.fontSize = `${Math.random() * 2 + 1}rem`;
+                el.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                el.style.animationDelay = `${Math.random() * 5}s`;
+                bgContainer.appendChild(el);
+            }
+        }
+        createBackgroundHearts();
+
+        // --- Game 1: Word Scramble ---
+        const scrambleWords = [
+            { word: 'BEAUTIFUL', hint: 'What you are, inside and out.' },
+            { word: 'PATIENT', hint: 'What you had to be for 19 years!' },
+            { word: 'WARMTH', hint: 'What your hugs feel like.' }
+        ];
+        let currentScramble = scrambleWords[0];
+
+        function shuffleWord(word) {
+            let arr = word.split('');
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr.join('');
+        }
+
+        function initScramble() {
+            currentScramble = scrambleWords[Math.floor(Math.random() * scrambleWords.length)];
+            let scrambled = shuffleWord(currentScramble.word);
+            // Ensure it's actually scrambled
+            while(scrambled === currentScramble.word) { scrambled = shuffleWord(currentScramble.word); }
+            document.getElementById('scramble-word').textContent = scrambled;
+            document.getElementById('scramble-input').value = '';
+            document.getElementById('scramble-msg').textContent = `Hint: ${currentScramble.hint}`;
+            document.getElementById('scramble-msg').className = "mt-4 text-sm font-medium text-gray-500 h-6";
+        }
+
+        function checkScramble() {
+            const input = document.getElementById('scramble-input').value.trim().toUpperCase();
+            const msgEl = document.getElementById('scramble-msg');
+            const btnNext = document.getElementById('btn-next-3');
+
+            if (input === currentScramble.word) {
+                msgEl.textContent = "Correct! You're amazing!";
+                msgEl.className = "mt-4 text-lg font-bold text-green-600 h-6 animate-bounce";
+                btnNext.classList.remove('btn-disabled');
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else {
+                msgEl.textContent = "Not quite! Try again.";
+                msgEl.className = "mt-4 text-lg font-bold text-rose-500 h-6";
+                // Shake effect
+                const inputEl = document.getElementById('scramble-input');
+                inputEl.style.transform = "translateX(-10px)";
+                setTimeout(() => inputEl.style.transform = "translateX(10px)", 50);
+                setTimeout(() => inputEl.style.transform = "translateX(-10px)", 100);
+                setTimeout(() => inputEl.style.transform = "translateX(0)", 150);
+            }
+        }
+        initScramble(); // Initialize on load
+
+        // --- Game 2: Memory Match ---
+        const emojis = ['🌸', '💖', '👑', '☕', '🍷', '🧸'];
+        let cards = [...emojis, ...emojis];
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let firstCard, secondCard;
+        let matchesFound = 0;
+
+        function shuffleCards() {
+            cards.sort(() => Math.random() - 0.5);
+        }
+
+        function setupMemoryGame() {
+            const board = document.getElementById('memory-board');
+            board.innerHTML = '';
+            matchesFound = 0;
+            hasFlippedCard = false;
+            lockBoard = false;
+            firstCard = null;
+            secondCard = null;
+            document.getElementById('btn-next-5').classList.add('btn-disabled');
+            document.getElementById('memory-msg').textContent = "";
+            
+            shuffleCards();
+
+            cards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.classList.add('memory-card');
+                card.dataset.emoji = emoji;
+                
+                card.innerHTML = `
+                    <div class="memory-card-inner">
+                        <div class="memory-card-front">${emoji}</div>
+                        <div class="memory-card-back"><i class="fas fa-heart"></i></div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', flipCard);
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === firstCard) return;
+
+            this.classList.add('flipped');
+
+            if (!hasFlippedCard) {
+                hasFlippedCard = true;
+                firstCard = this;
+                return;
+            }
+
+            secondCard = this;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            resetBoard();
+            matchesFound++;
+            
+            if(matchesFound === emojis.length) {
+                setTimeout(() => {
+                    document.getElementById('memory-msg').textContent = "All matches found!";
+                    document.getElementById('btn-next-5').classList.remove('btn-disabled');
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }, 500);
+            }
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                resetBoard();
+            }, 1000);
+        }
+
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        // --- Game 3: Catch Canvas Game ---
+        let catchGameReq;
+        function startCatchGame() {
+            const canvas = document.getElementById('catch-canvas');
+            const ctx = canvas.getContext('2d');
+            const overlay = document.getElementById('catch-overlay');
+            const scoreEl = document.getElementById('catch-score');
+            
+            // Set canvas size based on container
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            let score = 0;
+            let gameOver = false;
+            overlay.classList.add('hidden');
+            scoreEl.textContent = '0';
+
+            // Basket
+            const basket = {
+                w: 80,
+                h: 20,
+                x: canvas.width / 2 - 40,
+                y: canvas.height - 30,
+                speed: 8,
+                dx: 0
+            };
+
+            // Items falling
+            let items = [];
+            let frameCount = 0;
+
+            // Touch/Mouse controls
+            function moveBasket(e) {
+                let clientX;
+                if(e.type === 'touchmove') {
+                    clientX = e.touches[0].clientX;
+                    e.preventDefault(); // prevent scrolling
+                } else {
+                    clientX = e.clientX;
+                }
+                const rect = canvas.getBoundingClientRect();
+                const root = document.documentElement;
+                let mouseX = clientX - rect.left - root.scrollLeft;
+                
+                basket.x = mouseX - basket.w / 2;
+                
+                // Bounds
+                if (basket.x < 0) basket.x = 0;
+                if (basket.x + basket.w > canvas.width) basket.x = canvas.width - basket.w;
+            }
+
+            canvas.addEventListener('mousemove', moveBasket);
+            canvas.addEventListener('touchmove', moveBasket, {passive: false});
+
+            function createItem() {
+                const isGood = Math.random() > 0.3; // 70% hearts, 30% obstacles
+                items.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    size: 24,
+                    speed: Math.random() * 2 + 2,
+                    isGood: isGood,
+                    icon: isGood ? '❤️' : '🕷️'
+                });
+            }
+
+            function drawBasket() {
+                ctx.fillStyle = '#be123c';
+                ctx.beginPath();
+                ctx.roundRect(basket.x, basket.y, basket.w, basket.h, 10);
+                ctx.fill();
+            }
+
+            function drawItems() {
+                ctx.font = "24px Arial";
+                items.forEach(item => {
+                    ctx.fillText(item.icon, item.x, item.y);
+                });
+            }
+
+            function update() {
+                if(gameOver) return;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawBasket();
+                drawItems();
+
+                // Move items and check collision
+                for(let i = items.length - 1; i >= 0; i--) {
+                    let item = items[i];
+                    item.y += item.speed;
+
+                    // Collision check
+                    if (item.y + item.size > basket.y && 
+                        item.y < basket.y + basket.h && 
+                        item.x + item.size > basket.x && 
+                        item.x < basket.x + basket.w) {
+                        
+                        if(item.isGood) {
+                            score++;
+                            scoreEl.textContent = score;
+                            if(score >= 10) {
+                                gameOver = true;
+                                overlay.classList.remove('hidden');
+                                confetti({ particleCount: 150, spread: 80 });
+                            }
+                        } else {
+                            // Penalty for bad item
+                            score = Math.max(0, score - 1);
+                            scoreEl.textContent = score;
+                            // Flash red
+                            ctx.fillStyle = "rgba(255,0,0,0.3)";
+                            ctx.fillRect(0,0,canvas.width, canvas.height);
+                        }
+                        items.splice(i, 1);
+                    } else if (item.y > canvas.height) {
+                        // Off screen
+                        items.splice(i, 1);
+                    }
+                }
+
+                if(frameCount % 40 === 0) {
+                    createItem();
+                }
+                frameCount++;
+
+                if(!gameOver) {
+                    catchGameReq = requestAnimationFrame(update);
+                }
+            }
+            
+            // Clean up old instances if restarted
+            cancelAnimationFrame(catchGameReq);
+            update();
+        }
+
+        // Handle window resize for canvas
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('catch-canvas');
+            if(canvas && canvas.parentElement) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
+        });
+
+
+        // --- Game 4: The Quiz ---
+        const quizQuestions = [
+            {
+                q: "What is a mother's true superpower?",
+                options: ["Finding lost items instantly", "Healing anything with a kiss", "Knowing everything", "All of the above"],
+                correct: 3 // Index 3
+            },
+            {
+                q: "How many years have you been absolutely crushing this mom thing?",
+                options: ["10", "15", "19", "Forever"],
+                correct: 2
+            },
+            {
+                q: "Who loves you the most?",
+                options: ["Me", "Also Me", "Definitely Me", "100% Me"],
+                correct: -1 // All are correct!
+            }
+        ];
+        
+        let currentQIndex = 0;
+
+        function loadQuestion() {
+            const qObj = quizQuestions[currentQIndex];
+            document.getElementById('quiz-question').textContent = `${currentQIndex + 1}. ${qObj.q}`;
+            const optsContainer = document.getElementById('quiz-options');
+            optsContainer.innerHTML = '';
+
+            qObj.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 hover:border-rose-400 transition-colors text-gray-700 font-medium";
+                btn.textContent = opt;
+                btn.onclick = () => handleAnswer(idx);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedIndex) {
+            const qObj = quizQuestions[currentQIndex];
+            // If correct OR it's the trick question where all are correct
+            if(qObj.correct === selectedIndex || qObj.correct === -1) {
+                currentQIndex++;
+                if(currentQIndex < quizQuestions.length) {
+                    loadQuestion();
+                } else {
+                    document.getElementById('quiz-container').classList.add('hidden');
+                    document.getElementById('quiz-result').classList.remove('hidden');
+                    confetti();
+                }
+            } else {
+                // Wrong answer effect
+                const container = document.getElementById('quiz-container');
+                container.classList.add('animate-pulse', 'bg-red-50');
+                setTimeout(() => container.classList.remove('animate-pulse', 'bg-red-50'), 500);
+            }
+        }
+        
+        // Initialize Quiz
+        loadQuestion();
+
+
+        // --- Finale Effects ---
+        function fireFinale() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+              return Math.random() * (max - min) + min;
+            }
+
+            var interval = setInterval(function() {
+              var timeLeft = animationEnd - Date.now();
+
+              if (timeLeft <= 0) {
+                return clearInterval(interval);
+              }
+
+              var particleCount = 50 * (timeLeft / duration);
+              
+              // Add heart shapes to confetti if supported, otherwise standard
+              confetti(Object.assign({}, defaults, { particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                colors: ['#f43f5e', '#fb7185', '#fda4af', '#ffffff']
+              }));
+              confetti(Object.assign({}, defaults, { particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                colors: ['#f43f5e', '#fb7185', '#fda4af', '#ffffff']
+              }));
+            }, 250);
+        }
+
+        // Just a dummy function if needed
+        function showLetter() {
+            // Can add specific effects when letter page opens
+        }
+
+    </script>
+</body>
+</html>
